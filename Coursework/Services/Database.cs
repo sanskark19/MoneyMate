@@ -1,6 +1,5 @@
-// DatabaseServices.cs
 using SQLite;
-using Coursework.Models;  // Correct the namespace for Customer
+using Coursework.Models; // Correct the namespace for Customer
 using System.IO;
 using System.Threading.Tasks;
 
@@ -13,7 +12,6 @@ namespace DatabaseService.Services
         public DatabaseServices()
         {
             var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "customers.db");
-            // Updated for customer table
             _database = new SQLiteAsyncConnection(dbPath);
             _database.CreateTableAsync<Customer>().Wait(); // Create the Customer table if it doesn't exist
         }
@@ -37,7 +35,6 @@ namespace DatabaseService.Services
                 return false;
             }
         }
-
 
         // Get All Customers
         public async Task<List<Customer>> GetCustomersAsync()

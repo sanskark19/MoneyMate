@@ -6,7 +6,7 @@ namespace Coursework.Models
     public class Customer
     {
         [PrimaryKey, AutoIncrement]
-        public Guid Id { get; set; }
+        public int Id { get; set; } 
 
         [Required(ErrorMessage = "Customer Name is required.")]
         public string customer_name { get; set; }
