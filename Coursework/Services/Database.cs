@@ -1,5 +1,5 @@
 using SQLite;
-using Coursework.Models; // Correct the namespace for Customer
+using Coursework.Models; 
 using System.IO;
 using System.Threading.Tasks;
 

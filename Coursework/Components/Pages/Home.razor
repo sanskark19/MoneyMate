@@ -8,23 +8,23 @@
 <div class="container mt-5">
     <h2>Login Customer</h2>
 
-    <EditForm Model="@customer" OnValidSubmit="OnValidSubmit">
+    <EditForm Model="@loginModel" OnValidSubmit="OnValidSubmit">
         <DataAnnotationsValidator />
         <ValidationSummary />
 
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <InputText id="email" type="email" class="form-control" @bind-Value="customer.email" />
-            <ValidationMessage For="@(() => customer.email)" />
+            <InputText id="email" type="email" class="form-control" @bind-Value="loginModel.Email" />
+            <ValidationMessage For="@(() => loginModel.Email)" />
         </div>
 
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <InputText id="password" type="tel" class="form-control" @bind-Value="customer.password" />
-            <ValidationMessage For="@(() => customer.password)" />
+            <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
         </div>
 
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-primary">Login</button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(statusMessage))
@@ -36,24 +36,35 @@
 </div>
 
 @code {
-    private Customer customer = new Customer();
+    private LoginModel loginModel = new LoginModel();
     private string statusMessage = string.Empty;
-    public string email;
 
     private async Task OnValidSubmit()
     {
-        var validCustomer = await DatabaseService.GetCustomerByEmailAsync(this.customer.email);
+        try
+        {
+            var validCustomer = await DatabaseService.GetCustomerByEmailAsync(loginModel.Email);
 
-        if (validCustomer != null)
-        {
-            statusMessage = "Invalid login credentials!";
-             // Navigate to login page on success
+            if (validCustomer == null)
+            {
+                statusMessage = "Invalid email or password!";
+                return;
+            }
+
+            // Assuming passwords are stored in plain text (not recommended for production)
+            if (validCustomer.password == loginModel.Password)
+            {
+                statusMessage = "Login successful!";
+                NavigationManager.NavigateTo("/addtransaction"); // Navigate to the next page on success
+            }
+            else
+            {
+                statusMessage = "Invalid email or password!";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            statusMessage = "An error occurred while registering the customer.";
-            NavigationManager.NavigateTo("/weather");
+            statusMessage = $"An error occurred: {ex.Message}";
         }
     }
 }
-
