@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <!-- Background Modes -->
+        <key>UIBackgroundModes</key>
+        <array>
+            <string>fetch</string>
+        </array>
+
+        <!-- Specifies the app requires iPhone OS -->
+        <key>LSRequiresIPhoneOS</key>
+        <true/>
+
+        <!-- Device Family -->
+        <key>UIDeviceFamily</key>
+        <array>
+            <integer>1</integer> <!-- iPhone -->
+            <integer>2</integer> <!-- iPad -->
+        </array>
+
+        <!-- Required Device Capabilities -->
+        <key>UIRequiredDeviceCapabilities</key>
+        <array>
+            <string>arm64</string> <!-- Ensures 64-bit architecture -->
+        </array>
+
+        <!-- Supported Interface Orientations -->
+        <key>UISupportedInterfaceOrientations</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+
+        <!-- Supported Interface Orientations for iPad -->
+        <key>UISupportedInterfaceOrientations~ipad</key>
+        <array>
+            <string>UIInterfaceOrientationPortrait</string>
+            <string>UIInterfaceOrientationPortraitUpsideDown</string>
+            <string>UIInterfaceOrientationLandscapeLeft</string>
+            <string>UIInterfaceOrientationLandscapeRight</string>
+        </array>
+
+        <!-- App Icon Assets -->
+        <key>XSAppIconAssets</key>
+        <string>Assets.xcassets/appicon.appiconset</string>
+
+        <!-- macOS Catalyst-specific keys -->
+        <key>LSMinimumSystemVersion</key>
+        <string>11.0</string> <!-- macOS Big Sur or later -->
+        <key>CFBundleSupportedPlatforms</key>
+        <array>
+            <string>MacOSX</string>
+        </array>
+
+        <!-- macOS Catalyst-specific Background Fetch Support -->
+        <key>NSExtensions</key>
+        <array>
+            <dict>
+                <key>NSExtensionPointIdentifier</key>
+                <string>com.apple.appkit.application</string>
+                <key>NSExtensionAttributes</key>
+                <dict>
+                    <key>NSSupportsBackgroundFetch</key>
+                    <true/>
+                </dict>
+            </dict>
+        </array>
+    </dict>
+</plist>

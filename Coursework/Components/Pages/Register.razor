@@ -1,0 +1,79 @@
+@page "/"
+@inject NavigationManager NavigationManager
+@inject DatabaseService.Services.DatabaseServices DatabaseService
+@using System.ComponentModel.DataAnnotations
+@using Coursework.Models
+@using DatabaseService.Services
+
+<div class="container mt-5">
+    <h2>Register Customer</h2>
+
+    <EditForm Model="@customer" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label for="customerName" class="form-label">Customer Name</label>
+            <InputText id="customerName" class="form-control" @bind-Value="customer.customer_name" />
+            <ValidationMessage For="@(() => customer.customer_name)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <InputText id="email" type="email" class="form-control" @bind-Value="customer.email" />
+            <ValidationMessage For="@(() => customer.email)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="mobile" class="form-label">Mobile</label>
+            <InputText id="mobile" type="tel" class="form-control" @bind-Value="customer.mobile" />
+            <ValidationMessage For="@(() => customer.mobile)" />
+        </div>
+        
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" class="form-control" @bind-Value="customer.password" />
+            <ValidationMessage For="@(() => customer.password)" />
+        </div>
+
+        <div class="mb-3">
+            <label for="currencyType" class="form-label">Currency Type</label>
+            <select id="currencyType" @bind="customer.currency_type">
+                <option value="NPR">Nepali Rupees</option>
+                <option value="INR">Indian Rupees</option>
+                <option value="USD">US Dollar</option>
+            </select>
+            <ValidationMessage For="@(() => customer.currency_type)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="mt-3 alert @(statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+            @statusMessage
+        </div>
+    }
+</div>
+
+@code {
+    private Customer customer = new Customer();
+    private string statusMessage = string.Empty;
+
+    private async Task OnValidSubmit()
+    {
+        var success = await DatabaseService.SaveCustomerAsync(customer);
+
+        if (success)
+        {
+            statusMessage = "Customer registered successfully!";
+            NavigationManager.NavigateTo("/login"); // Navigate to login page on success
+        }
+        else
+        {
+            statusMessage = "An error occurred while registering the customer.";
+        }
+    }
+}
+
