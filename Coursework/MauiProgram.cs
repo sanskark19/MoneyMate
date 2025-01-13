@@ -12,7 +12,10 @@ public static class MauiProgram
             .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
 
         builder.Services.AddMauiBlazorWebView();
-
+        
+        // Add Blazor Bootstrap service
+        builder.Services.AddBlazorBootstrap();
+        
         // Register the DatabaseService as a singleton
         builder.Services.AddSingleton<DatabaseService.Services.DatabaseServices>();
         builder.Services.AddSingleton<DatabaseService.Services.dbTransaction>();

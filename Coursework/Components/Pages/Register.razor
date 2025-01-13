@@ -5,75 +5,89 @@
 @using Coursework.Models
 @using DatabaseService.Services
 
-<div class="container mt-5">
-    <h2>Register Customer</h2>
+<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%;">
+    <div class="register-body" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 400px;">
+        <div class="form-register">
+            <EditForm Model="@_customer" OnValidSubmit="OnValidSubmit" class="text-center">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-    <EditForm Model="@customer" OnValidSubmit="OnValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+                <img class="mb-4" src="/app_icon.png" alt="App Icon" height="72">
+                <h1 class="h2 mb-3 fw-bold text-black">Register Customer</h1>
+                <h2 class="h3 mb-3 fw-normal text-black">Create Your Account</h2>
+                <br />
 
-        <div class="mb-3">
-            <label for="customerName" class="form-label">Customer Name</label>
-            <InputText id="customerName" class="form-control" @bind-Value="customer.customer_name" />
-            <ValidationMessage For="@(() => customer.customer_name)" />
+                <div class="form-floating">
+                    <InputText id="customerName" class="form-control" @bind-Value="_customer.customer_name" placeholder="Customer Name" />
+                    <label for="customerName" class="text-muted">Customer Name</label>
+                    <ValidationMessage For="@(() => _customer.customer_name)" />
+                </div>
+                <br />
+
+                <div class="form-floating">
+                    <InputText id="email" type="email" class="form-control" @bind-Value="_customer.email" placeholder="Email" />
+                    <label for="email" class="text-muted">Email</label>
+                    <ValidationMessage For="@(() => _customer.email)" />
+                </div>
+                <br />
+
+                <div class="form-floating">
+                    <InputText id="mobile" type="tel" class="form-control" @bind-Value="_customer.mobile" placeholder="Mobile" />
+                    <label for="mobile" class="text-muted">Mobile</label>
+                    <ValidationMessage For="@(() => _customer.mobile)" />
+                </div>
+                <br />
+
+                <div class="form-floating">
+                    <InputText id="password" type="password" class="form-control" @bind-Value="_customer.password" placeholder="Password" />
+                    <label for="password" class="text-muted">Password</label>
+                    <ValidationMessage For="@(() => _customer.password)" />
+                </div>
+                <br />
+
+                <div class="form-floating mb-3">
+                    <select id="currencyType" class="form-control" @bind="_customer.currency_type">
+                        <option value="" disabled selected>Select a currency</option>
+                        <option value="NPR">Nepali Rupees</option>
+                        <option value="INR">Indian Rupees</option>
+                        <option value="USD">US Dollar</option>
+                    </select>
+                    <label for="currencyType" class="text-muted">Currency Type</label>
+                    <ValidationMessage For="@(() => _customer.currency_type)" />
+                </div>
+
+
+                @if (!string.IsNullOrEmpty(_statusMessage))
+                {
+                    <div class="mt-3 alert @(_statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+                        @_statusMessage
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary mx-auto" style="width: 150px; height: 45px; border-radius: 50px; font-size: 20px; cursor: pointer; background-color: #007bff; color: white;">
+                    Register
+                </button>
+            </EditForm>
         </div>
-
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <InputText id="email" type="email" class="form-control" @bind-Value="customer.email" />
-            <ValidationMessage For="@(() => customer.email)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="mobile" class="form-label">Mobile</label>
-            <InputText id="mobile" type="tel" class="form-control" @bind-Value="customer.mobile" />
-            <ValidationMessage For="@(() => customer.mobile)" />
-        </div>
-        
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <InputText id="password" class="form-control" @bind-Value="customer.password" />
-            <ValidationMessage For="@(() => customer.password)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="currencyType" class="form-label">Currency Type</label>
-            <select id="currencyType" @bind="customer.currency_type">
-                <option value="NPR">Nepali Rupees</option>
-                <option value="INR">Indian Rupees</option>
-                <option value="USD">US Dollar</option>
-            </select>
-            <ValidationMessage For="@(() => customer.currency_type)" />
-        </div>
-
-        <button type="submit" class="btn btn-primary">Register</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(statusMessage))
-    {
-        <div class="mt-3 alert @(statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
-            @statusMessage
-        </div>
-    }
+    </div>
 </div>
 
 @code {
-    private Customer customer = new Customer();
-    private string statusMessage = string.Empty;
+    private Customer _customer = new Customer();
+    private string _statusMessage = string.Empty;
 
     private async Task OnValidSubmit()
     {
-        var success = await DatabaseService.SaveCustomerAsync(customer);
+        var success = await DatabaseService.SaveCustomerAsync(_customer);
 
         if (success)
         {
-            statusMessage = "Customer registered successfully!";
+            _statusMessage = "Customer registered successfully!";
             NavigationManager.NavigateTo("/login"); // Navigate to login page on success
         }
         else
         {
-            statusMessage = "An error occurred while registering the customer.";
+            _statusMessage = "An error occurred while registering the customer.";
         }
     }
 }
-

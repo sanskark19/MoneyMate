@@ -5,66 +5,76 @@
 @using Coursework.Models
 @using DatabaseService.Services
 
-<div class="container mt-5">
-    <h2>Login Customer</h2>
+<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%;">
+    <div class="login-body" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 400px;">
+        <div class="form-login">
+            <EditForm Model="@_loginModel" OnValidSubmit="OnValidSubmit" class="text-center">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-    <EditForm Model="@loginModel" OnValidSubmit="OnValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+                <img class="mb-4" src="/app_icon.png" alt="App Icon" height="72">
+                <h1 class="h2 mb-3 fw-bold text-black">Customer Login</h1>
+                <h2 class="h3 mb-3 fw-normal text-black">Welcome Back!</h2>
+                <br />
 
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <InputText id="email" type="email" class="form-control" @bind-Value="loginModel.Email" />
-            <ValidationMessage For="@(() => loginModel.Email)" />
+                <div class="form-floating">
+                    <InputText id="email" type="email" class="form-control" @bind-Value="_loginModel.Email" placeholder="Email" />
+                    <label for="email" class="text-muted">Email</label>
+                    <ValidationMessage For="@(() => _loginModel.Email)" />
+                </div>
+                <br />
+
+                <div class="form-floating mb-3">
+                    <InputText id="password" type="password" class="form-control" @bind-Value="_loginModel.Password" placeholder="Password" />
+                    <label for="password" class="text-muted">Password</label>
+                    <ValidationMessage For="@(() => _loginModel.Password)" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(_statusMessage))
+                {
+                    <div class="mt-3 alert @(_statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+                        @_statusMessage
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary mx-auto" style="width: 150px; height: 45px; border-radius: 50px; font-size: 20px; cursor: pointer; background-color: #007bff; color: white;">
+                    Login
+                </button>
+            </EditForm>
         </div>
-
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
-            <ValidationMessage For="@(() => loginModel.Password)" />
-        </div>
-
-        <button type="submit" class="btn btn-primary">Login</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(statusMessage))
-    {
-        <div class="mt-3 alert @(statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
-            @statusMessage
-        </div>
-    }
+    </div>
 </div>
 
 @code {
-    private LoginModel loginModel = new LoginModel();
-    private string statusMessage = string.Empty;
+    private LoginModel _loginModel = new LoginModel();
+    private string _statusMessage = string.Empty;
 
     private async Task OnValidSubmit()
     {
         try
         {
-            var validCustomer = await DatabaseService.GetCustomerByEmailAsync(loginModel.Email);
+            var validCustomer = await DatabaseService.GetCustomerByEmailAsync(_loginModel.Email);
 
             if (validCustomer == null)
             {
-                statusMessage = "Invalid email or password!";
+                _statusMessage = "Invalid email or password!";
                 return;
             }
 
             // Assuming passwords are stored in plain text (not recommended for production)
-            if (validCustomer.password == loginModel.Password)
+            if (validCustomer.password == _loginModel.Password)
             {
-                statusMessage = "Login successful!";
+                _statusMessage = "Login successful!";
                 NavigationManager.NavigateTo("/addtransaction"); // Navigate to the next page on success
             }
             else
             {
-                statusMessage = "Invalid email or password!";
+                _statusMessage = "Invalid email or password!";
             }
         }
         catch (Exception ex)
         {
-            statusMessage = $"An error occurred: {ex.Message}";
+            _statusMessage = $"An error occurred: {ex.Message}";
         }
     }
 }
