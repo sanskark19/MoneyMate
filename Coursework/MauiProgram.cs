@@ -19,6 +19,7 @@ public static class MauiProgram
         // Register the DatabaseService as a singleton
         builder.Services.AddSingleton<DatabaseService.Services.DatabaseServices>();
         builder.Services.AddSingleton<DatabaseService.Services.dbTransaction>();
+        
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

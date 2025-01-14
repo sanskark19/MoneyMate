@@ -7,7 +7,7 @@ public class TransactionModel
     
     public string Title { get; set; }
     
-    public decimal Amount { get; set; }
+    public double Amount { get; set; }
     
     public string TransactionType  { get; set; }
     

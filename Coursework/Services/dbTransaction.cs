@@ -6,7 +6,7 @@ namespace DatabaseService.Services;
 
 public class dbTransaction
 {
-    private SQLiteAsyncConnection _database;
+    public SQLiteAsyncConnection _database;
 
     public dbTransaction()
     {

@@ -1,0 +1,61 @@
+@page "/transaction"
+@inject DatabaseService.Services.dbTransaction dbTransaction
+@using Coursework.Models
+@using DatabaseService.Services
+
+<h1>Total Balance : @balance</h1>
+@foreach (var transaction in transactions)
+{
+    <ul>
+        <li>@transaction.Title</li>
+        <li>@transaction.Amount</li>
+        <li>@transaction.Date</li>
+    </ul>
+    
+}
+
+<hr/>
+<h1>Caash Out flow : @OutflowAmount</h1>
+@foreach (var transaction in cashOutFlow)
+{
+    <ul>
+        <li>@transaction.Title</li>
+        <li>@transaction.Amount</li>
+        <li>@transaction.Date</li>
+    </ul>
+
+}
+
+<hr/>
+<h1>Caash In flow : @inflowamount</h1>
+@foreach (var transaction in cashInFlow)
+{
+    <ul>
+        <li>@transaction.Title</li>
+        <li>@transaction.Amount</li>
+        <li>@transaction.Date</li>
+    </ul>
+
+}
+
+
+
+
+@code{
+    private List<TransactionModel> transactions = new List<TransactionModel>();
+    private List<TransactionModel> cashOutFlow = new List<TransactionModel>();
+    private List<TransactionModel> cashInFlow = new List<TransactionModel>();
+    private double balance;
+    private double OutflowAmount;
+    private double inflowamount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        transactions = await dbTransaction.GetTransactionsAsync();
+        cashOutFlow = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending((t => t.Date)).ToList();
+        cashInFlow = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending((t => t.Date)).ToList();
+        OutflowAmount = cashOutFlow.Sum(t => t.Amount);
+        inflowamount = cashInFlow.Sum(t => t.Amount);
+        balance = inflowamount - OutflowAmount;
+    }
+}
