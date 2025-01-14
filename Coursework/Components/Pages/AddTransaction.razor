@@ -4,63 +4,77 @@
 @using System.ComponentModel.DataAnnotations
 @using Coursework.Models
 @using DatabaseService.Services
-@using Coursework.Services
 
-<div class="container mt-5">
-    <h2>Register Customer</h2>
+<div class="transaction-container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%; border-radius: 10px;">
+    <div class="card border-0 shadow-sm" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 500px;">
+        <h1 class="h2 mb-0 fw-bold text-black text-center">Add Transaction</h1>
+        
+        <div class="card-body">
+            <EditForm Model="@_transaction" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
 
-    <EditForm Model="@_transaction" OnValidSubmit="OnValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+                <!-- Transaction Title -->
+                <div class="mb-4">
+                    <label for="TransactionTitle" class="form-label fw-medium">Transaction Title</label>
+                    <InputText id="TransactionTitle" class="form-control" @bind-Value="_transaction.Title"/>
+                    <ValidationMessage For="@(() => _transaction.Title)"/>
+                </div>
 
-        <div class="mb-3">
-            <label for="TransactionTitle" class="form-label">Transaction Title</label>
-            <InputText id="TransactionTitle" class="form-control" @bind-Value="_transaction.Title" />
-            <ValidationMessage For="@(() => _transaction.Title)" />
+                <!-- Transaction Amount -->
+                <div class="mb-4">
+                    <label for="amount" class="form-label fw-medium">Transaction Amount</label>
+                    <InputNumber id="amount" class="form-control" @bind-Value="_transaction.Amount" />
+                    <ValidationMessage For="@(() => _transaction.Amount)" />
+                </div>
+
+                <!-- Transaction Type -->
+                <div class="mb-4">
+                    <label for="TransactionType" class="form-label fw-medium">Transaction Type</label>
+                    <select id="TransactionType" class="form-select" @bind="_transaction.TransactionType">
+                        <option value="Credit">Credit</option>
+                        <option value="Debit">Debit</option>
+                    </select>
+                    <ValidationMessage For="@(() => _transaction.TransactionType)" />
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label for="Notes" class="form-label fw-medium">Notes (Optional)</label>
+                    <InputText id="Notes" class="form-control" @bind-Value="_transaction.Notes" />
+                    <ValidationMessage For="@(() => _transaction.Notes)" />
+                </div>
+
+                <!-- Tags -->
+                <div class="mb-4">
+                    <label for="Tags" class="form-label fw-medium">Tags (Optional)</label>
+                    <InputText id="Tags" class="form-control" @bind-Value="_transaction.Tags" />
+                    <ValidationMessage For="@(() => _transaction.Tags)" />
+                </div>
+
+                <!-- Transaction Date -->
+                <div class="mb-4">
+                    <label for="Date" class="form-label fw-medium">Transaction Date</label>
+                    <InputDate id="Date" class="form-control" @bind-Value="_transaction.Date" />
+                    <ValidationMessage For="@(() => _transaction.Date)" />
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-primary me-md-2 px-4">Add Transaction</button>
+                    <button type="button" class="btn btn-outline-secondary px-4" @onclick="ResetForm">Reset</button>
+                </div>
+            </EditForm>
+
+            <!-- Status Message -->
+            @if (!string.IsNullOrEmpty(_statusMessage))
+            {
+                <div class="mt-4 alert @(_statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+                    @_statusMessage
+                </div>
+            }
         </div>
-
-        <div class="mb-3">
-            <label for="amount" class="form-label">Transaction Amount</label>
-            <InputNumber id="amount" class="form-control" @bind-Value="_transaction.Amount" />
-            <ValidationMessage For="@(() => _transaction.Amount)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="TransactionType" class="form-label">Transaction Type</label>
-            <select id="TransactionType" class="form-control" @bind="_transaction.TransactionType">
-                <option value="Credit">Credit</option>
-                <option value="Debit">Debit</option>
-            </select>
-            <ValidationMessage For="@(() => _transaction.TransactionType)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="Notes" class="form-label">Notes (Optional)</label>
-            <InputText id="Notes" class="form-control" @bind-Value="_transaction.Notes" />
-            <ValidationMessage For="@(() => _transaction.Notes)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="Tags" class="form-label">Tags (Optional)</label>
-            <InputText id="Tags" class="form-control" @bind-Value="_transaction.Tags" />
-            <ValidationMessage For="@(() => _transaction.Tags)" />
-        </div>
-
-        <div class="mb-3">
-            <label for="Date" class="form-label">Transaction Date</label>
-            <InputDate id="Date" class="form-control" @bind-Value="_transaction.Date" />
-            <ValidationMessage For="@(() => _transaction.Date)" />
-        </div>
-
-        <button type="submit" class="btn btn-primary">Register</button>
-    </EditForm>
-
-    @if (!string.IsNullOrEmpty(_statusMessage))
-    {
-        <div class="mt-3 alert @(_statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
-            @_statusMessage
-        </div>
-    }
+    </div>
 </div>
 
 @code {
@@ -71,14 +85,13 @@
     {
         try
         {
-          
             // Call the SaveTransactionAsync method with the correct model type
             var success = await TransactionService.SaveTransactionAsync(_transaction);
 
             if (success)
             {
                 _statusMessage = "Transaction added successfully!";
-                NavigationManager.NavigateTo("/"); // Navigate to another page if needed
+                NavigationManager.NavigateTo("/transaction"); // Navigate to another page if needed
             }
             else
             {
@@ -89,5 +102,11 @@
         {
             _statusMessage = $"An error occurred: {ex.Message}";
         }
+    }
+
+    private void ResetForm()
+    {
+        _transaction = new TransactionModel();
+        _statusMessage = string.Empty;
     }
 }

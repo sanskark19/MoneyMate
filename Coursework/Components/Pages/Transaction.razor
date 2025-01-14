@@ -2,47 +2,129 @@
 @inject DatabaseService.Services.dbTransaction dbTransaction
 @using Coursework.Models
 @using DatabaseService.Services
+@using Coursework.Shared
 
-<h1>Total Balance : @balance</h1>
-@foreach (var transaction in transactions)
-{
-    <ul>
-        <li>@transaction.Title</li>
-        <li>@transaction.Amount</li>
-        <li>@transaction.Date</li>
-    </ul>
-    
-}
+<div class="container mt-5">
+    <h1 class="h2 mb-3 fw-bold text-black">Transaction Summary</h1>
 
-<hr/>
-<h1>Caash Out flow : @OutflowAmount</h1>
-@foreach (var transaction in cashOutFlow)
-{
-    <ul>
-        <li>@transaction.Title</li>
-        <li>@transaction.Amount</li>
-        <li>@transaction.Date</li>
-    </ul>
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Balance</div>
+                <div class="card-body">
+                    <h5 class="card-title">@balance.ToString("C")</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-header">Cash Outflow</div>
+                <div class="card-body">
+                    <h5 class="card-title">@OutflowAmount.ToString("C")</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Cash Inflow</div>
+                <div class="card-body">
+                    <h5 class="card-title">@inflowamount.ToString("C")</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Search Bar -->
+    <div class="w-100 mb-4">
+        <SearchBox OnSearch="UpdateFilteredTransaction"></SearchBox>
+    </div>
+    <!-- All Transactions Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <h2>All Transactions</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var transaction in filteredTransactions)
+                {
+                    <tr>
+                        <td>@transaction.Title</td>
+                        <td>@transaction.Amount.ToString("C")</td>
+                        <td>@transaction.Date.ToShortDateString()</td>
+                        <td>@transaction.TransactionType</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-}
-
-<hr/>
-<h1>Caash In flow : @inflowamount</h1>
-@foreach (var transaction in cashInFlow)
-{
-    <ul>
-        <li>@transaction.Title</li>
-        <li>@transaction.Amount</li>
-        <li>@transaction.Date</li>
-    </ul>
-
-}
 
 
+    <!-- Cash Outflow Table -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>Cash Outflow</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var transaction in cashOutFlow)
+                {
+                    <tr>
+                        <td>@transaction.Title</td>
+                        <td>@transaction.Amount.ToString("C")</td>
+                        <td>@transaction.Date.ToShortDateString()</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 
+    <!-- Cash Inflow Table -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>Cash Inflow</h2>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var transaction in cashInFlow)
+                {
+                    <tr>
+                        <td>@transaction.Title</td>
+                        <td>@transaction.Amount.ToString("C")</td>
+                        <td>@transaction.Date.ToShortDateString()</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-@code{
+@code {
+    private List<TransactionModel> _transactionModels = new List<TransactionModel>();
     private List<TransactionModel> transactions = new List<TransactionModel>();
+    private List<TransactionModel> filteredTransactions = new List<TransactionModel>();
     private List<TransactionModel> cashOutFlow = new List<TransactionModel>();
     private List<TransactionModel> cashInFlow = new List<TransactionModel>();
     private double balance;
@@ -52,10 +134,27 @@
     protected override async Task OnInitializedAsync()
     {
         transactions = await dbTransaction.GetTransactionsAsync();
-        cashOutFlow = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending((t => t.Date)).ToList();
-        cashInFlow = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending((t => t.Date)).ToList();
+        filteredTransactions = transactions; // Initialize filteredTransactions with all transactions
+        cashOutFlow = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending(t => t.Date).ToList();
+        cashInFlow = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending(t => t.Date).ToList();
         OutflowAmount = cashOutFlow.Sum(t => t.Amount);
         inflowamount = cashInFlow.Sum(t => t.Amount);
         balance = inflowamount - OutflowAmount;
+    }
+
+    private void UpdateFilteredTransaction(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            // If the search term is empty, show all transactions
+            filteredTransactions = transactions;
+        }
+        else
+        {
+            // Filter transactions based on the search term (case-insensitive)
+            filteredTransactions = transactions
+                .Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
     }
 }

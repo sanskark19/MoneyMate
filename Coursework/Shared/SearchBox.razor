@@ -1,0 +1,17 @@
+<input class="form-control" style="max-width: 600px" placeholder="Search…" @bind="searchItem" />
+
+<button class="form-control" style="max-width: 300px" @onclick="OnSearchClicked">
+    Search
+</button>
+
+@code {
+[Parameter]
+public EventCallback<string> OnSearch { get; set; }
+
+private string searchItem;
+
+    private async Task OnSearchClicked()
+    {
+await OnSearch.InvokeAsync(searchItem);
+}
+}

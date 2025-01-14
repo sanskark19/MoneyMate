@@ -5,16 +5,15 @@
 @using Coursework.Models
 @using DatabaseService.Services
 
-<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%;">
+<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%;border-radius: 10px;">
     <div class="register-body" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 400px;">
-        <div class="form-register">
+        <div class="transaction-body" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 400px;">
             <EditForm Model="@_customer" OnValidSubmit="OnValidSubmit" class="text-center">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
                 <h1 class="h2 mb-3 fw-bold text-black">MONEY MATE</h1>
-                <h2 class="h2 mb-3 fw-normal text">Register Customer</h2>
-                <h4 class="h4 mb-3 fw-normal text-black">Create Your Account</h4>
+                <h2 class="h2 mb-3 fw-normal text">Create Your Account</h2>
                 <br />
 
                 <div class="form-floating">
