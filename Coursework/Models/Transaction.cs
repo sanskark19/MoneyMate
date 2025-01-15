@@ -12,9 +12,9 @@ public class TransactionModel
     [Required(ErrorMessage = "Transaction Amount is required.")]
     [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
     public double Amount { get; set; }
-    
+
     [Required(ErrorMessage = "Transaction Type is required.")]
-    public string TransactionType  { get; set; }
+    public string TransactionType { get; set; } = "Credit";
     
     public string Notes { get; set; }
     
