@@ -1,6 +1,7 @@
+<!-- SearchBox.razor -->
 <input class="form-control" style="max-width: 600px" placeholder="Search…" @bind="_searchItem" />
 
-<button class="form-control" style="max-width: 100px" @onclick="OnSearchClicked">
+<button class="btn btn-primary" style="max-width: 100px" @onclick="TriggerSearch" disabled="@string.IsNullOrWhiteSpace(_searchItem)">
     Search
 </button>
 
@@ -10,9 +11,11 @@
 
     private string _searchItem;
 
-    private async Task OnSearchClicked()
+    private async Task TriggerSearch()
     {
-        Console.WriteLine("Search button clicked!"); // Debugging line
-        await OnSearch.InvokeAsync(_searchItem);
+        if (OnSearch.HasDelegate && !string.IsNullOrWhiteSpace(_searchItem))
+        {
+            await OnSearch.InvokeAsync(_searchItem);
+        }
     }
 }

@@ -21,6 +21,6 @@ public class TransactionModel
     public string Tags { get; set; } 
     
     [Required(ErrorMessage = "Transaction Date is required.")]
-    public DateTime Date { get; set; }
+    public DateTime Date { get; set; } = DateTime.Now;
     
 }

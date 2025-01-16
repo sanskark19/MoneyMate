@@ -1,44 +1,48 @@
 @page "/adddebts"
 @inject NavigationManager NavigationManager
-@inject DatabaseService.Services.dbDebt TransactionService
-@using System.ComponentModel.DataAnnotations
-@using System.Diagnostics
+@inject DatabaseService.Services.dbDebt DebtService
 @using Coursework.Models
-@using DatabaseService.Services
 
 <div class="transaction-container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%; border-radius: 10px;">
     <div class="card border-0 shadow-sm" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 500px;">
-        <h1 class="h2 mb-0 fw-bold text-black text-center">Debts</h1>
-        
+        <h1 class="h2 mb-0 fw-bold text-black text-center">Add Debt</h1>
+
         <div class="card-body">
-            <EditForm Model="@_debts" OnValidSubmit="OnValidSubmit">
+            <EditForm Model="@_debt" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                <!-- Transaction Title -->
+                <!-- Debt Title -->
                 <div class="mb-4">
-                    <label for="Debts" class="form-label fw-medium">Debts Title</label>
-                    <InputText id="DebtsTitle" class="form-control" @bind-Value="_debts.Source"/>
-                    <ValidationMessage For="@(() => _debts.Source)"/>
+                    <label for="DebtTitle" class="form-label fw-medium">Debt Title</label>
+                    <InputText id="DebtTitle" class="form-control" @bind-Value="_debt.Source" />
+                    <ValidationMessage For="@(() => _debt.Source)" />
                 </div>
 
-                <!-- Transaction Amount -->
+                <!-- Debt Amount -->
                 <div class="mb-4">
-                    <label for="amount" class="form-label fw-medium">Debts Amount</label>
-                    <InputNumber id="amount" class="form-control" @bind-Value="_debts.Amount" />
-                    <ValidationMessage For="@(() => _debts.Amount)" />
+                    <label for="amount" class="form-label fw-medium">Debt Amount</label>
+                    <InputNumber id="amount" class="form-control" @bind-Value="_debt.Amount" />
+                    <ValidationMessage For="@(() => _debt.Amount)" />
+                </div>
+                
+                <!-- Source -->
+                <div class="mb-4">
+                    <label for="Source" class="form-label fw-medium">Source (Optional)</label>
+                    <InputText id="Source" class="form-control" @bind-Value="_debt.Source" />
+                    <ValidationMessage For="@(() => _debt.Source)" />
                 </div>
                 
                 <!-- Due Date -->
                 <div class="mb-4">
-                    <label for="Date" class="form-label fw-medium">Debts Date</label>
-                    <InputDate id="Date" class="form-control" @bind-Value="_debts.DueDate" />
-                    <ValidationMessage For="@(() => _debts.DueDate)" />
+                    <label for="dueDate" class="form-label fw-medium">Due Date</label>
+                    <InputDate id="dueDate" class="form-control" @bind-Value="_debt.DueDate" />
+                    <ValidationMessage For="@(() => _debt.DueDate)" />
                 </div>
-                
+
                 <!-- Buttons -->
                 <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4">
-                    <button type="submit" class="btn btn-primary me-md-2 px-4">Add Debts</button>
+                    <button type="submit" class="btn btn-primary me-md-2 px-4">Add Debt</button>
                     <button type="button" class="btn btn-outline-secondary px-4" @onclick="ResetForm">Reset</button>
                 </div>
             </EditForm>
@@ -55,25 +59,22 @@
 </div>
 
 @code {
-    private Debts _debts = new Debts();
+    private Debts _debt = new Debts
+    {
+        Source = String.Empty,
+        Amount = 0,
+        DueDate = DateTime.Now
+    };
     private string _statusMessage = string.Empty;
 
     private async Task OnValidSubmit()
     {
         try
         {
-            // Call the SaveTransactionAsync method with the correct model type
-            var success = await Debts.SaveDebtsAsync(_debts);
-
+            var success = await DebtService.SaveDebtsAsync(_debt);
+            _statusMessage = success ? "Debt added successfully!" : "An error occurred while adding the debt.";
             if (success)
-            {
-                _statusMessage = "Debts added successfully!";
-                NavigationManager.NavigateTo("/transaction"); // Navigate to another page if needed
-            }
-            else
-            {
-                _statusMessage = "An error occurred while adding the transaction.";
-            }
+                NavigationManager.NavigateTo("/transaction");
         }
         catch (Exception ex)
         {
@@ -83,7 +84,12 @@
 
     private void ResetForm()
     {
-        _debts = new Debts();
+        _debt = new Debts
+        {
+            Source = String.Empty,
+            Amount = 0,
+            DueDate = DateTime.Now
+        };
         _statusMessage = string.Empty;
     }
 }

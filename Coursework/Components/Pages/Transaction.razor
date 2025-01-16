@@ -34,10 +34,17 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Search Bar -->
-    <div class="w-100 mb-4">
-        <SearchBox OnSearch="FilterTransaction"></SearchBox>
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8">
+            <input
+                type="text"
+                class="form-control form-control-lg shadow-sm"
+                placeholder="Search Transactions by Title, Type, Tags ..."
+                @oninput="e => FilterTransaction(e.Value.ToString())"
+            />
+        </div>
     </div>
 
     <!-- Top 5 Latest Transactions -->
@@ -120,7 +127,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </div>x
 
     <!-- Cash Inflow Table -->
     <div class="row mt-4">

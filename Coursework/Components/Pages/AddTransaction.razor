@@ -47,11 +47,25 @@
 
                 <!-- Tags -->
                 <div class="mb-4">
-                    <label for="Tags" class="form-label fw-medium">Tags (Optional)</label>
-                    <InputText id="Tags" class="form-control" @bind-Value="_transaction.Tags" />
+                    <label for="Tags" class="form-label fw-medium">Tags</label>
+                    <select id="Tags" class="form-select" @bind="_transaction.Tags">
+                        <option value="" disabled selected>Choose a tag</option>
+                        <option value="Yearly">Yearly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Food">Food</option>
+                        <option value="Drinks">Drinks</option>
+                        <option value="Clothes">Clothes</option>
+                        <option value="Gadgets">Gadgets</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                        <option value="Fuel">Fuel</option>
+                        <option value="Rent">Rent</option>
+                        <option value="EMI">EMI</option>
+                        <option value="Party">Party</option>
+                    </select>
                     <ValidationMessage For="@(() => _transaction.Tags)" />
                 </div>
 
+      
                 <!-- Transaction Date -->
                 <div class="mb-4">
                     <label for="Date" class="form-label fw-medium">Transaction Date</label>

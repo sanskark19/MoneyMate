@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DatabaseService.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Coursework;
 
@@ -19,6 +20,7 @@ public static class MauiProgram
         // Register the DatabaseService as a singleton
         builder.Services.AddSingleton<DatabaseService.Services.DatabaseServices>();
         builder.Services.AddSingleton<DatabaseService.Services.dbTransaction>();
+        builder.Services.AddSingleton<DatabaseService.Services.dbDebt>();
         
 
 #if DEBUG
