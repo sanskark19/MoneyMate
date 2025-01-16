@@ -51,17 +51,20 @@ namespace DatabaseService.Services
         // Update balance after a transaction (add or clear debts)
         public async Task UpdateBalance(double amount, string transactionType)
         {
+            // This logic only affects the balance without inflow or outflow
             var balanceTransaction = new TransactionModel
             {
                 TransactionId = Guid.NewGuid(),
                 Title = transactionType == "AddDebt" ? "Debt Added" : "Debt Cleared",
-                Amount = transactionType == "AddDebt" ? -amount : amount,
+                Amount = transactionType == "AddDebt" ? amount : -amount, // Add debt as positive, clear debt as negative
                 Date = DateTime.Now,
-                TransactionType = transactionType == "AddDebt" ? "Debit" : "Credit"
+                TransactionType = "BalanceUpdate" // Custom type to avoid treating as inflow or outflow
             };
 
-            await SaveTransactionAsync(balanceTransaction); // Save the balance update as a transaction
+            // Save the transaction but avoid showing it in inflow or outflow
+            await SaveTransactionAsync(balanceTransaction);
         }
+
 
         // Fetch the current transaction balance
         public async Task<decimal> GetCurrentBalanceAsync()

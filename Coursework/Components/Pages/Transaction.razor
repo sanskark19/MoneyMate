@@ -10,27 +10,52 @@
 
     <!-- Summary Cards -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-4 col-sm-6">
             <div class="card text-white bg-success mb-3">
                 <div class="card-header">Total Balance</div>
                 <div class="card-body">
                     <h5 class="card-title">@balance.ToString("C")</h5>
+                    <small class="text-white">Balance after all inflows and outflows</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 col-sm-6">
             <div class="card text-white bg-danger mb-3">
                 <div class="card-header">Cash Outflow</div>
                 <div class="card-body">
                     <h5 class="card-title">@OutflowAmount.ToString("C")</h5>
+                    <small class="text-white">Total expenses</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 col-sm-6">
             <div class="card text-white bg-primary mb-3">
                 <div class="card-header">Cash Inflow</div>
                 <div class="card-body">
                     <h5 class="card-title">@inflowamount.ToString("C")</h5>
+                    <small class="text-white">Total income</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Row with Remaining Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-sm-6">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Pending Debts</div>
+                <div class="card-body">
+                    <h5 class="card-title">@totalPendingDebts.ToString("C")</h5>
+                    <small class="text-white">Uncleared debts</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-sm-6">
+            <div class="card text-white bg-secondary mb-3">
+                <div class="card-header">Total Number of Transactions</div>
+                <div class="card-body">
+                    <h5 class="card-title">@totalTransactionCount</h5>
+                    <small class="text-white">Total numbers of recorded transactions</small>
                 </div>
             </div>
         </div>
@@ -57,6 +82,8 @@
                 <tr>
                     <th>Title</th>
                     <th>Amount</th>
+                    <th>Notes</th>
+                    <th>Tags</th>
                     <th>Date</th>
                     <th>Type</th>
                 </tr>
@@ -67,6 +94,8 @@
                     <tr>
                         <td>@transaction.Title</td>
                         <td>@transaction.Amount.ToString("C")</td>
+                        <td>@transaction.Notes</td>
+                        <td>@transaction.Tags</td>
                         <td>@transaction.Date.ToShortDateString()</td>
                         <td>@transaction.TransactionType</td>
                     </tr>
@@ -162,9 +191,13 @@
     private List<TransactionModel> filteredTransactions = new List<TransactionModel>();
     private List<TransactionModel> cashOutFlow = new List<TransactionModel>();
     private List<TransactionModel> cashInFlow = new List<TransactionModel>();
+    private List<Debts> pendingDebts = new List<Debts>();
+
     private double balance;
     private double OutflowAmount;
     private double inflowamount;
+    private double totalPendingDebts;
+    private int totalTransactionCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -176,12 +209,16 @@
         // Fetch all transactions
         transactions = await dbTransaction.GetTransactionsAsync();
 
+        // Fetch debts
+        var allDebts = await DebtService.GetDebtsAsync();
+        pendingDebts = allDebts.Where(d => !d.IsCleared).ToList();
+
         // Categorize transactions
         filteredTransactions = transactions.ToList();
         cashOutFlow = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending(t => t.Date).ToList();
         cashInFlow = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending(t => t.Date).ToList();
 
-        // Fetch debts and recalculate balance
+        // Recalculate values
         await RecalculateBalance();
     }
 
@@ -189,11 +226,10 @@
     {
         OutflowAmount = cashOutFlow.Sum(t => t.Amount);
         inflowamount = cashInFlow.Sum(t => t.Amount);
+        totalPendingDebts = pendingDebts.Sum(d => d.Amount);
+        balance = inflowamount - OutflowAmount + totalPendingDebts;
 
-        var debts = await DebtService.GetDebtsAsync();
-        var totalDebt = debts.Where(d => !d.IsCleared).Sum(d => d.Amount);
-
-        balance = inflowamount - OutflowAmount - totalDebt;
+        totalTransactionCount = transactions.Count;
 
         StateHasChanged(); // Refresh the UI
     }

@@ -26,7 +26,14 @@
                     <InputNumber id="amount" class="form-control" @bind-Value="_debt.Amount" />
                     <ValidationMessage For="@(() => _debt.Amount)" />
                 </div>
-
+                
+                <!-- Source -->
+                <div class="mb-4">
+                    <label for="Source" class="form-label fw-medium">Source (Optional)</label>
+                    <InputText id="Source" class="form-control" @bind-Value="_debt.Source" />
+                    <ValidationMessage For="@(() => _debt.Source)" />
+                </div>
+                
                 <!-- Due Date -->
                 <div class="mb-4">
                     <label for="dueDate" class="form-label fw-medium">Due Date</label>
@@ -62,7 +69,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var debt in pendingDebts)
+                    @foreach (var debt in pendingDebts.Take(5))
                     {
                         <tr>
                             <td>@debt.Source</td>
@@ -89,7 +96,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var debt in clearedDebts)
+                    @foreach (var debt in clearedDebts.Take(5))
                     {
                         <tr>
                             <td>@debt.Source</td>
@@ -131,23 +138,46 @@
     {
         try
         {
-            var success = await DebtService.SaveDebtsAsync(_debt);
-            if (success)
+            if (_debt.Amount > 0) 
             {
-                await TransactionService.UpdateBalance(_debt.Amount, "AddDebt");
-                await LoadDebts();
-                _statusMessage = "Debt added successfully!";
+                // Add debt
+                var success = await DebtService.SaveDebtsAsync(_debt);
+                if (success)
+                {
+                    // Only update balance without affecting cash inflow or outflow
+                    await TransactionService.UpdateBalance(_debt.Amount, "AddDebt");
+                    await LoadDebts(); // Reload debts after adding
+                    _statusMessage = "Debt added successfully!";
+                }
+                else
+                {
+                    _statusMessage = "Error adding debt.";
+                }
             }
-            else
+            else if (_debt.Amount < 0)
             {
-                _statusMessage = "An error occurred while adding the debt.";
+                // Clear debt
+                var success = await DebtService.SaveDebtsAsync(_debt);
+                if (success)
+                {
+                    // Update balance when clearing debt
+                    await TransactionService.UpdateBalance(Math.Abs(_debt.Amount), "ClearDebt");
+                    await LoadDebts(); // Reload debts after clearing
+                    _statusMessage = "Debt cleared successfully!";
+                }
+                else
+                {
+                    _statusMessage = "Error clearing debt.";
+                }
             }
         }
         catch (Exception ex)
         {
-            _statusMessage = $"An error occurred: {ex.Message}";
+            _statusMessage = $"Error: {ex.Message}";
         }
     }
+
+
 
     private async Task ClearDebt(Guid debtId)
     {
@@ -158,6 +188,7 @@
             var success = await DebtService.UpdateDebtAsync(debt);
             if (success)
             {
+                // Pass "ClearDebt" to deduct from total balance
                 await TransactionService.UpdateBalance(debt.Amount, "ClearDebt");
                 await LoadDebts();
                 _statusMessage = "Debt cleared successfully!";
