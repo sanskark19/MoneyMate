@@ -2,51 +2,83 @@ using System.Transactions;
 using SQLite;
 using Coursework.Models;
 
-namespace DatabaseService.Services;
-
-public class dbTransaction
+namespace DatabaseService.Services
 {
-    public SQLiteAsyncConnection _database;
-
-    public dbTransaction()
+    public class dbTransaction
     {
-        var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "transaction.db");
-        // Updated for customer table
-        _database = new SQLiteAsyncConnection(dbPath);
-        _database.CreateTableAsync<TransactionModel>().Wait(); // Create the Customer table if it doesn't exist
-    }
+        private readonly SQLiteAsyncConnection _database;
 
-    public SQLiteAsyncConnection GetConnection()
-    {
-        return _database;
-    }
-
-    // Add a new Customer
-    public async Task<bool> SaveTransactionAsync(TransactionModel transaction)
-    {
-        try
+        public dbTransaction()
         {
-            await _database.InsertAsync(transaction);
-            return true;
+            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "transaction.db");
+            _database = new SQLiteAsyncConnection(dbPath);
+            _database.CreateTableAsync<TransactionModel>().Wait(); // Create the Transaction table if it doesn't exist
         }
-        catch (Exception ex)
+
+        public SQLiteAsyncConnection GetConnection()
         {
-            Console.WriteLine($"Error saving transaction: {ex.Message}");
-            return false;
+            return _database;
         }
-    }
 
+        // Add a new transaction
+        public async Task<bool> SaveTransactionAsync(TransactionModel transaction)
+        {
+            try
+            {
+                await _database.InsertAsync(transaction);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving transaction: {ex.Message}");
+                return false;
+            }
+        }
 
-    // Get All transactions
-    public async Task<List<TransactionModel>> GetTransactionsAsync()
-    {
-        return await _database.Table<TransactionModel>().ToListAsync(); // Get a list of customers from the database
-    }
+        // Get all transactions
+        public async Task<List<TransactionModel>> GetTransactionsAsync()
+        {
+            return await _database.Table<TransactionModel>().ToListAsync(); // Get a list of transactions from the database
+        }
 
-    // Get transaction By Id
-    public async Task<TransactionModel> GetTransactionById(Guid id)
-    {
-        return await _database.Table<TransactionModel>()
-            .FirstOrDefaultAsync(t =>  t.TransactionId == id); // Find customer by email
+        // Get a transaction by ID
+        public async Task<TransactionModel> GetTransactionById(Guid id)
+        {
+            return await _database.Table<TransactionModel>()
+                .FirstOrDefaultAsync(t => t.TransactionId == id); // Find transaction by ID
+        }
+
+        // Update balance after a transaction (add or clear debts)
+        public async Task UpdateBalance(double amount, string transactionType)
+        {
+            var balanceTransaction = new TransactionModel
+            {
+                TransactionId = Guid.NewGuid(),
+                Title = transactionType == "AddDebt" ? "Debt Added" : "Debt Cleared",
+                Amount = transactionType == "AddDebt" ? -amount : amount,
+                Date = DateTime.Now,
+                TransactionType = transactionType == "AddDebt" ? "Debit" : "Credit"
+            };
+
+            await SaveTransactionAsync(balanceTransaction); // Save the balance update as a transaction
+        }
+
+        // Fetch the current transaction balance
+        public async Task<decimal> GetCurrentBalanceAsync()
+        {
+            try
+            {
+                // Fetch all transactions and calculate the sum of their amounts
+                var transactions = await _database.Table<TransactionModel>().ToListAsync();
+                return transactions.Sum(t => (decimal)t.Amount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching current balance: {ex.Message}");
+                return 0;
+            }
+        }
+
     }
 }
+

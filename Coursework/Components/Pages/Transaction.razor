@@ -1,5 +1,6 @@
 @page "/transaction"
 @inject DatabaseService.Services.dbTransaction dbTransaction
+@inject DatabaseService.Services.dbDebt DebtService
 @using Coursework.Models
 @using DatabaseService.Services
 @using Coursework.Shared
@@ -74,7 +75,7 @@
             </table>
         </div>
     </div>
-    
+
     <!-- All Transactions Table -->
     <div class="row">
         <div class="col-md-12">
@@ -127,7 +128,7 @@
                 </tbody>
             </table>
         </div>
-    </div>x
+    </div>
 
     <!-- Cash Inflow Table -->
     <div class="row mt-4">
@@ -157,7 +158,6 @@
 </div>
 
 @code {
-    private List<TransactionModel> _transactionModels = new List<TransactionModel>();
     private List<TransactionModel> transactions = new List<TransactionModel>();
     private List<TransactionModel> filteredTransactions = new List<TransactionModel>();
     private List<TransactionModel> cashOutFlow = new List<TransactionModel>();
@@ -168,19 +168,38 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Fetch all transactions
         transactions = await dbTransaction.GetTransactionsAsync();
-        filteredTransactions = transactions; // Initialize filteredTransactions with all transactions
+
+        // Categorize transactions
+        filteredTransactions = transactions.ToList();
         cashOutFlow = transactions.Where(t => t.TransactionType == "Debit").OrderByDescending(t => t.Date).ToList();
         cashInFlow = transactions.Where(t => t.TransactionType == "Credit").OrderByDescending(t => t.Date).ToList();
+
+        // Fetch debts and recalculate balance
+        await RecalculateBalance();
+    }
+
+    private async Task RecalculateBalance()
+    {
         OutflowAmount = cashOutFlow.Sum(t => t.Amount);
         inflowamount = cashInFlow.Sum(t => t.Amount);
-        balance = inflowamount - OutflowAmount;
+
+        var debts = await DebtService.GetDebtsAsync();
+        var totalDebt = debts.Where(d => !d.IsCleared).Sum(d => d.Amount);
+
+        balance = inflowamount - OutflowAmount - totalDebt;
+
+        StateHasChanged(); // Refresh the UI
     }
 
     private void FilterTransaction(string searchTerm)
     {
-        Console.WriteLine($"Filtering transactions with term: {searchTerm}"); // Debugging line
-
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             filteredTransactions = transactions.ToList();
@@ -194,5 +213,4 @@
 
         StateHasChanged();
     }
-
 }

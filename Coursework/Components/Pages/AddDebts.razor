@@ -1,10 +1,11 @@
 @page "/adddebts"
 @inject NavigationManager NavigationManager
 @inject DatabaseService.Services.dbDebt DebtService
+@inject DatabaseService.Services.dbTransaction TransactionService
 @using Coursework.Models
 
 <div class="transaction-container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%; border-radius: 10px;">
-    <div class="card border-0 shadow-sm" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 500px;">
+    <div class="card border-0 shadow-sm" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 800px;">
         <h1 class="h2 mb-0 fw-bold text-black text-center">Add Debt</h1>
 
         <div class="card-body">
@@ -25,14 +26,7 @@
                     <InputNumber id="amount" class="form-control" @bind-Value="_debt.Amount" />
                     <ValidationMessage For="@(() => _debt.Amount)" />
                 </div>
-                
-                <!-- Source -->
-                <div class="mb-4">
-                    <label for="Source" class="form-label fw-medium">Source (Optional)</label>
-                    <InputText id="Source" class="form-control" @bind-Value="_debt.Source" />
-                    <ValidationMessage For="@(() => _debt.Source)" />
-                </div>
-                
+
                 <!-- Due Date -->
                 <div class="mb-4">
                     <label for="dueDate" class="form-label fw-medium">Due Date</label>
@@ -54,6 +48,58 @@
                     @_statusMessage
                 </div>
             }
+
+            <!-- Pending Debts Table -->
+            <div class="mt-4">
+                <h2 class="h4 fw-bold">Pending Debts</h2>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Debt Title</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var debt in pendingDebts)
+                    {
+                        <tr>
+                            <td>@debt.Source</td>
+                            <td>@debt.Amount.ToString("C")</td>
+                            <td>@debt.DueDate.ToShortDateString()</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ClearDebt(debt.DebtId)">Clear Debt</button>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Cleared Debts Table -->
+            <div class="mt-4">
+                <h2 class="h4 fw-bold">Cleared Debts</h2>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Debt Title</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var debt in clearedDebts)
+                    {
+                        <tr>
+                            <td>@debt.Source</td>
+                            <td>@debt.Amount.ToString("C")</td>
+                            <td>@debt.DueDate.ToShortDateString()</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -61,20 +107,41 @@
 @code {
     private Debts _debt = new Debts
     {
-        Source = String.Empty,
+        Source = string.Empty,
         Amount = 0,
         DueDate = DateTime.Now
     };
     private string _statusMessage = string.Empty;
+    private List<Debts> pendingDebts = new List<Debts>();
+    private List<Debts> clearedDebts = new List<Debts>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDebts();
+    }
+
+    private async Task LoadDebts()
+    {
+        var allDebts = await DebtService.GetDebtsAsync();
+        pendingDebts = allDebts.Where(d => !d.IsCleared).ToList();
+        clearedDebts = allDebts.Where(d => d.IsCleared).ToList();
+    }
 
     private async Task OnValidSubmit()
     {
         try
         {
             var success = await DebtService.SaveDebtsAsync(_debt);
-            _statusMessage = success ? "Debt added successfully!" : "An error occurred while adding the debt.";
             if (success)
-                NavigationManager.NavigateTo("/transaction");
+            {
+                await TransactionService.UpdateBalance(_debt.Amount, "AddDebt");
+                await LoadDebts();
+                _statusMessage = "Debt added successfully!";
+            }
+            else
+            {
+                _statusMessage = "An error occurred while adding the debt.";
+            }
         }
         catch (Exception ex)
         {
@@ -82,11 +149,31 @@
         }
     }
 
+    private async Task ClearDebt(Guid debtId)
+    {
+        var debt = pendingDebts.FirstOrDefault(d => d.DebtId == debtId);
+        if (debt != null)
+        {
+            debt.IsCleared = true;
+            var success = await DebtService.UpdateDebtAsync(debt);
+            if (success)
+            {
+                await TransactionService.UpdateBalance(debt.Amount, "ClearDebt");
+                await LoadDebts();
+                _statusMessage = "Debt cleared successfully!";
+            }
+            else
+            {
+                _statusMessage = "Failed to clear the debt.";
+            }
+        }
+    }
+
     private void ResetForm()
     {
         _debt = new Debts
         {
-            Source = String.Empty,
+            Source = string.Empty,
             Amount = 0,
             DueDate = DateTime.Now
         };
