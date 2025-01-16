@@ -1,0 +1,122 @@
+@page "/alltransactions"
+@inject DatabaseService.Services.dbTransaction dbTransaction
+@using Coursework.Models
+@using DatabaseService.Services
+@using Coursework.Shared
+
+<div class="container mt-5">
+    <h1 class="h2 mb-3 fw-bold text-black">All Transactions</h1>
+
+    <!-- Search Bar -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8">
+            <input
+                type="text"
+                class="form-control form-control-lg shadow-sm"
+                placeholder="Search Transactions by Title, Type, Tags ..."
+                @oninput="e => FilterTransaction(e.Value.ToString())"
+            />
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" @bind="startDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" class="form-control" @bind="endDate" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="FilterTransactionsByDate">Filter</button>
+        </div>
+    </div>
+
+    <!-- All Transactions Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                        <th>Tags</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in filteredTransactions)
+                    {
+                        <tr>
+                            <td>@transaction.Title</td>
+                            <td>@transaction.Amount.ToString("C")</td>
+                            <td>@transaction.Notes</td>
+                            <td>@transaction.Tags</td>
+                            <td>@transaction.Date.ToShortDateString()</td>
+                            <td>@transaction.TransactionType</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TransactionModel> transactions = new List<TransactionModel>();
+    private List<TransactionModel> filteredTransactions = new List<TransactionModel>();
+
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Fetch all transactions from the database
+        transactions = await dbTransaction.GetTransactionsAsync();
+
+        // Initially, show all transactions
+        filteredTransactions = transactions.ToList();
+    }
+
+    private void FilterTransaction(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            // If search term is empty, display all transactions
+            filteredTransactions = transactions.ToList();
+        }
+        else
+        {
+            // Filter transactions by Title, TransactionType, or Tags
+            filteredTransactions = transactions
+                .Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            t.TransactionType.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            (t.Tags != null && t.Tags.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+
+        // Refresh the UI to reflect the updated filtered list
+        StateHasChanged();
+    }
+
+    private void FilterTransactionsByDate()
+    {
+        // Apply date filter if start date and end date are provided
+        filteredTransactions = transactions
+            .Where(t => (!startDate.HasValue || t.Date >= startDate.Value) &&
+                        (!endDate.HasValue || t.Date <= endDate.Value))
+            .ToList();
+
+        // Refresh the UI to reflect the filtered list
+        StateHasChanged();
+    }
+}

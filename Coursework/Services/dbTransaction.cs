@@ -65,7 +65,6 @@ namespace DatabaseService.Services
             await SaveTransactionAsync(balanceTransaction);
         }
 
-
         // Fetch the current transaction balance
         public async Task<decimal> GetCurrentBalanceAsync()
         {

@@ -60,7 +60,7 @@
             </div>
         </div>
     </div>
-
+    <br>
     <!-- Search Bar -->
     <div class="row mb-5 justify-content-center">
         <div class="col-md-8">
@@ -72,71 +72,59 @@
             />
         </div>
     </div>
-
-    <!-- Top 5 Latest Transactions -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <h2>Top 5 Latest Transactions</h2>
-            <table class="table table-striped">
-                <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Amount</th>
-                    <th>Notes</th>
-                    <th>Tags</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach (var transaction in filteredTransactions.Take(5))
-                {
-                    <tr>
-                        <td>@transaction.Title</td>
-                        <td>@transaction.Amount.ToString("C")</td>
-                        <td>@transaction.Notes</td>
-                        <td>@transaction.Tags</td>
-                        <td>@transaction.Date.ToShortDateString()</td>
-                        <td>@transaction.TransactionType</td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+    <br>
+    <!-- Date Filter -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" @bind="startDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" class="form-control" @bind="endDate" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="FilterTransactionsByDate">Filter</button>
         </div>
     </div>
-
-    <!-- All Transactions Table -->
+    <br>
+    <!-- Top 5 Latest Transactions -->
     <div class="row">
         <div class="col-md-12">
-            <h2>All Transactions</h2>
+            <h2>Five Latest Transactions</h2>
             <table class="table table-striped">
                 <thead>
                 <tr>
                     <th>Title</th>
                     <th>Amount</th>
                     <th>Date</th>
-                    <th>Type</th>
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var transaction in filteredTransactions)
+                @foreach (var transaction in filteredTransactions.OrderByDescending(t => t.Date).Take(5))
                 {
                     <tr>
                         <td>@transaction.Title</td>
                         <td>@transaction.Amount.ToString("C")</td>
                         <td>@transaction.Date.ToShortDateString()</td>
-                        <td>@transaction.TransactionType</td>
                     </tr>
                 }
                 </tbody>
             </table>
         </div>
+        <br>
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="/alltransactions" class="btn btn-sm btn-lg">View All Transactions</a>
+            </div>
+        </div>
+        <br>
     </div>
-
+    <br>
     <!-- Cash Outflow Table -->
     <div class="row mt-4">
         <div class="col-md-12">
-            <h2>Cash Outflow</h2>
+            <h2>Top Five Highest Cash Outflow</h2>
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -146,7 +134,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var transaction in cashOutFlow)
+                @foreach (var transaction in cashOutFlow.OrderByDescending(t => t.Amount).Take(5))
                 {
                     <tr>
                         <td>@transaction.Title</td>
@@ -157,12 +145,19 @@
                 </tbody>
             </table>
         </div>
+        <br>
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="/alltransactions" class="btn btn-sm btn-lg">View Cash Outflow</a>
+            </div>
+        </div>
+        <br>
     </div>
-
+    <br>
     <!-- Cash Inflow Table -->
     <div class="row mt-4">
         <div class="col-md-12">
-            <h2>Cash Inflow</h2>
+            <h2>Top Five Highest Cash Inflow</h2>
             <table class="table table-striped">
                 <thead>
                 <tr>
@@ -172,7 +167,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                @foreach (var transaction in cashInFlow)
+                @foreach (var transaction in cashInFlow.OrderByDescending(t => t.Amount).Take(5))
                 {
                     <tr>
                         <td>@transaction.Title</td>
@@ -183,6 +178,13 @@
                 </tbody>
             </table>
         </div>
+        <br>
+        <div class="row mt-4">
+            <div class="col-md-12 text-center">
+                <a href="/alltransactions" class="btn btn-sm btn-lg">View Cash Inflow</a>
+            </div>
+        </div>
+        <br>
     </div>
 </div>
 
@@ -198,6 +200,9 @@
     private double inflowamount;
     private double totalPendingDebts;
     private int totalTransactionCount;
+
+    private DateTime? startDate;
+    private DateTime? endDate;
 
     protected override async Task OnInitializedAsync()
     {
@@ -234,6 +239,43 @@
         StateHasChanged(); // Refresh the UI
     }
 
+    private void FilterTransactionsByDate()
+    {
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            filteredTransactions = transactions
+                .Where(t => t.Date >= startDate.Value && t.Date <= endDate.Value)
+                .ToList();
+        }
+        else if (startDate.HasValue)
+        {
+            filteredTransactions = transactions
+                .Where(t => t.Date >= startDate.Value)
+                .ToList();
+        }
+        else if (endDate.HasValue)
+        {
+            filteredTransactions = transactions
+                .Where(t => t.Date <= endDate.Value)
+                .ToList();
+        }
+        else
+        {
+            filteredTransactions = transactions.ToList();
+        }
+
+        cashOutFlow = filteredTransactions
+            .Where(t => t.TransactionType == "Debit")
+            .OrderByDescending(t => t.Date)
+            .ToList();
+
+        cashInFlow = filteredTransactions
+            .Where(t => t.TransactionType == "Credit")
+            .OrderByDescending(t => t.Date)
+            .ToList();
+
+        StateHasChanged();
+    }
     private void FilterTransaction(string searchTerm)
     {
         if (string.IsNullOrWhiteSpace(searchTerm))
@@ -249,4 +291,5 @@
 
         StateHasChanged();
     }
+}
 }

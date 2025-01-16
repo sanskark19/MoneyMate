@@ -1,0 +1,74 @@
+@page "/pie-charts"
+@inject DatabaseService.Services.dbTransaction dbTransaction
+@using Coursework.Models
+@using MudBlazor
+
+<h1 class="h2 mb-3 fw-bold text-black">Top Five Cash Flow Pie Charts</h1>
+
+<!-- Top 5 Highest Cash Outflow Pie Chart -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2>Top Five Highest Cash Outflow</h2>
+        <MudChart T="PieChartData" ChartType="ChartType.Pie" Width="100%" Height="400px">
+            <MudChartSeries Data="cashOutflowPieData" />
+        </MudChart>
+    </div>
+</div>
+
+<!-- Top 5 Highest Cash Inflow Pie Chart -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h2>Top Five Highest Cash Inflow</h2>
+        <MudChart T="PieChartData" ChartType="ChartType.Pie" Width="100%" Height="400px">
+            <MudChartSeries Data="cashInflowPieData" />
+        </MudChart>
+    </div>
+</div>
+
+@code {
+    private List<TransactionModel> transactions = new List<TransactionModel>();
+    private List<TransactionModel> cashOutFlow = new List<TransactionModel>();
+    private List<TransactionModel> cashInFlow = new List<TransactionModel>();
+
+    private List<PieChartData> cashOutflowPieData = new List<PieChartData>();
+    private List<PieChartData> cashInflowPieData = new List<PieChartData>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Fetch all transactions
+        transactions = await dbTransaction.GetTransactionsAsync();
+
+        // Categorize transactions
+        cashOutFlow = transactions
+            .Where(t => t.TransactionType == "Debit")
+            .OrderByDescending(t => t.Amount)
+            .ToList();
+
+        cashInFlow = transactions
+            .Where(t => t.TransactionType == "Credit")
+            .OrderByDescending(t => t.Amount)
+            .ToList();
+
+        // Prepare pie chart data
+        cashOutflowPieData = cashOutFlow
+            .Take(5)
+            .Select(t => new PieChartData { Label = t.Title, Value = t.Amount })
+            .ToList();
+
+        cashInflowPieData = cashInFlow
+            .Take(5)
+            .Select(t => new PieChartData { Label = t.Title, Value = t.Amount })
+            .ToList();
+    }
+
+    public class PieChartData
+    {
+        public string Label { get; set; }
+        public double Value { get; set; }
+    }
+}
