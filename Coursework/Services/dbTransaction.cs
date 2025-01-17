@@ -10,7 +10,8 @@ namespace DatabaseService.Services
 
         public dbTransaction()
         {
-            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "transaction.db");
+            var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "transaction.db");
             _database = new SQLiteAsyncConnection(dbPath);
             _database.CreateTableAsync<TransactionModel>().Wait(); // Create the Transaction table if it doesn't exist
         }
@@ -38,7 +39,8 @@ namespace DatabaseService.Services
         // Get all transactions
         public async Task<List<TransactionModel>> GetTransactionsAsync()
         {
-            return await _database.Table<TransactionModel>().ToListAsync(); // Get a list of transactions from the database
+            return await _database.Table<TransactionModel>()
+                .ToListAsync(); // Get a list of transactions from the database
         }
 
         // Get a transaction by ID
@@ -56,7 +58,9 @@ namespace DatabaseService.Services
             {
                 TransactionId = Guid.NewGuid(),
                 Title = transactionType == "AddDebt" ? "Debt Added" : "Debt Cleared",
-                Amount = transactionType == "AddDebt" ? amount : -amount, // Add debt as positive, clear debt as negative
+                Amount = transactionType == "AddDebt"
+                    ? amount
+                    : -amount, // Add debt as positive, clear debt as negative
                 Date = DateTime.Now,
                 TransactionType = "BalanceUpdate" // Custom type to avoid treating as inflow or outflow
             };
@@ -80,7 +84,6 @@ namespace DatabaseService.Services
                 return 0;
             }
         }
-
     }
 }
 

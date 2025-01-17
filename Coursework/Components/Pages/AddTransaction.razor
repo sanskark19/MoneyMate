@@ -65,7 +65,6 @@
                     <ValidationMessage For="@(() => _transaction.Tags)" />
                 </div>
 
-      
                 <!-- Transaction Date -->
                 <div class="mb-4">
                     <label for="Date" class="form-label fw-medium">Transaction Date</label>
@@ -83,7 +82,7 @@
             <!-- Status Message -->
             @if (!string.IsNullOrEmpty(_statusMessage))
             {
-                <div class="mt-4 alert @(_statusMessage.Contains("error") ? "alert-danger" : "alert-success")">
+                <div class="mt-4 alert @(_statusMessage.Contains("Error") ? "alert-danger" : "alert-success")">
                     @_statusMessage
                 </div>
             }
@@ -99,13 +98,23 @@
     {
         try
         {
-            // Call the SaveTransactionAsync method with the correct model type
+            // Fetch the current balance
+            var currentBalance = await TransactionService.GetCurrentBalanceAsync();
+
+            // Check if the transaction is a debit and if the amount exceeds the balance
+            if (_transaction.TransactionType == "Debit" && _transaction.Amount > (double)currentBalance)
+            {
+                _statusMessage = "Error: Debit amount cannot exceed the total balance.";
+                return; // Stop further processing
+            }
+
+            // Save the transaction if validation passes
             var success = await TransactionService.SaveTransactionAsync(_transaction);
 
             if (success)
             {
                 _statusMessage = "Transaction added successfully!";
-                NavigationManager.NavigateTo("/transaction"); // Navigate to another page if needed
+                NavigationManager.NavigateTo("/transaction"); // Navigate to the transaction summary page
             }
             else
             {
