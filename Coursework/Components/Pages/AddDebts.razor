@@ -92,16 +92,16 @@
                     <tr>
                         <th>Debt Title</th>
                         <th>Amount</th>
-                        <th>Due Date</th>
+                        <th>Cleared Date</th>
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var debt in clearedDebts.Take(5))
+                    @foreach (var debt in clearedDebts.OrderByDescending(d => d.ClearedDate).Take(5))
                     {
                         <tr>
                             <td>@debt.Source</td>
                             <td>@debt.Amount.ToString("C")</td>
-                            <td>@debt.DueDate.ToShortDateString()</td>
+                            <td>@debt.ClearedDate.ToShortDateString()</td>
                         </tr>
                     }
                     </tbody>

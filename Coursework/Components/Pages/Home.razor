@@ -1,17 +1,19 @@
 ﻿@page "/login"
+@layout CustomLayout
 @inject NavigationManager NavigationManager
 @inject DatabaseService.Services.DatabaseServices DatabaseService
 @using System.ComponentModel.DataAnnotations
+@using Coursework.Components.Layout
 @using Coursework.Models
 @using DatabaseService.Services
 
-<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%;border-radius: 10px;">
+<div class="container d-flex justify-content-center align-items-center vh-100 p-4" style="background-color: #96BCD4; max-width: 100%; border-radius: 10px;">
     <div class="login-body" style="background-color: #E1EBEE; border-radius: 10px; padding: 20px; width: 100%; max-width: 400px;">
         <div class="form-login">
             <EditForm Model="@_loginModel" OnValidSubmit="OnValidSubmit" class="text-center">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
-                
+
                 <h1 class="h2 mb-3 fw-bold text-black">MONEY MATE</h1>
                 <h2 class="h2 mb-3 fw-normal text">Customer Login</h2>
                 <h4 class="h3 mb-3 fw-normal text-black">Welcome Back!</h4>
@@ -41,6 +43,12 @@
                     Login
                 </button>
             </EditForm>
+            <br>
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <a href="/" class="btn btn-sm btn-lg">Go to Register</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

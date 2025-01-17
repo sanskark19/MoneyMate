@@ -1,0 +1,102 @@
+@page "/cashinflow"
+@inject DatabaseService.Services.dbTransaction dbTransaction
+@using Coursework.Models
+
+<div class="container mt-5">
+    <h1 class="h2 mb-3 fw-bold text-black">Cash Inflow</h1>
+
+    <!-- Search Bar -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8">
+            <input
+                type="text"
+                class="form-control form-control-lg shadow-sm"
+                placeholder="Search Inflow by Title or Tags ..."
+                @oninput="e => FilterCashInflow(e.Value.ToString())"
+            />
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" @bind="startDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" class="form-control" @bind="endDate" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="FilterByDate">Filter</button>
+        </div>
+    </div>
+
+
+    <!-- Cash Inflow Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Notes</th>
+                    <th>Tags</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var inflow in filteredCashInflow)
+                {
+                    <tr>
+                        <td>@inflow.Title</td>
+                        <td>@inflow.Amount.ToString("C")</td>
+                        <td>@inflow.Notes</td>
+                        <td>@inflow.Tags</td>
+                        <td>@inflow.Date.ToShortDateString()</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TransactionModel> cashInflow = new List<TransactionModel>();
+    private List<TransactionModel> filteredCashInflow = new List<TransactionModel>();
+
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactions = await dbTransaction.GetTransactionsAsync();
+        cashInflow = transactions.Where(t => t.TransactionType == "Credit").ToList();
+        filteredCashInflow = cashInflow;
+    }
+
+    private void FilterCashInflow(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredCashInflow = cashInflow;
+        }
+        else
+        {
+            filteredCashInflow = cashInflow
+                .Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            (t.Tags != null && t.Tags.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+    }
+
+    private void FilterByDate()
+    {
+        filteredCashInflow = cashInflow
+            .Where(t => (!startDate.HasValue || t.Date >= startDate.Value) &&
+                        (!endDate.HasValue || t.Date <= endDate.Value))
+            .ToList();
+    }
+}

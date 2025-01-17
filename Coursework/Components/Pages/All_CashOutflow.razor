@@ -1,0 +1,102 @@
+@page "/cashoutflow"
+@inject DatabaseService.Services.dbTransaction dbTransaction
+@using Coursework.Models
+
+<div class="container mt-5">
+    <h1 class="h2 mb-3 fw-bold text-black">Cash Outflow</h1>
+
+    <!-- Search Bar -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-8">
+            <input
+                type="text"
+                class="form-control form-control-lg shadow-sm"
+                placeholder="Search Outflow by Title or Tags ..."
+                @oninput="e => FilterCashOutflow(e.Value.ToString())"
+            />
+        </div>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="row mb-5 justify-content-center">
+        <div class="col-md-3">
+            <label for="startDate" class="form-label">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" @bind="startDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate" class="form-label">End Date:</label>
+            <input type="date" id="endDate" class="form-control" @bind="endDate" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" @onclick="FilterByDate">Filter</button>
+        </div>
+    </div>
+
+
+    <!-- Cash Outflow Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Notes</th>
+                        <th>Tags</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var outflow in filteredCashOutflow)
+                    {
+                        <tr>
+                            <td>@outflow.Title</td>
+                            <td>@outflow.Amount.ToString("C")</td>
+                            <td>@outflow.Notes</td>
+                            <td>@outflow.Tags</td>
+                            <td>@outflow.Date.ToShortDateString()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<TransactionModel> cashOutflow = new List<TransactionModel>();
+    private List<TransactionModel> filteredCashOutflow = new List<TransactionModel>();
+
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactions = await dbTransaction.GetTransactionsAsync();
+        cashOutflow = transactions.Where(t => t.TransactionType == "Debit").ToList();
+        filteredCashOutflow = cashOutflow;
+    }
+
+    private void FilterCashOutflow(string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredCashOutflow = cashOutflow;
+        }
+        else
+        {
+            filteredCashOutflow = cashOutflow
+                .Where(t => t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            (t.Tags != null && t.Tags.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
+        }
+    }
+
+    private void FilterByDate()
+    {
+        filteredCashOutflow = cashOutflow
+            .Where(t => (!startDate.HasValue || t.Date >= startDate.Value) &&
+                        (!endDate.HasValue || t.Date <= endDate.Value))
+            .ToList();
+    }
+}
